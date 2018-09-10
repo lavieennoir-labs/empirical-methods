@@ -283,6 +283,9 @@ var ChartHandler = /** @class */ (function () {
     }
     ChartHandler.prototype.updateFrequencyPolygon = function (xMin, xMax, data) {
         var chart = document.getElementById('frequencyPolygon');
+        if (this.frequencyPolygonChart)
+            // @ts-ignore
+            this.frequencyPolygonChart.destroy();
         // @ts-ignore
         this.frequencyPolygonChart = new Chart(chart.getContext('2d'), {
             type: 'scatter',
@@ -339,6 +342,9 @@ var ChartHandler = /** @class */ (function () {
     };
     ChartHandler.prototype.updateFrequencyPolygonRelative = function (xMin, xMax, data) {
         var chart = document.getElementById('frequencyPolygonRelative');
+        if (this.frequencyPolygonRelativeChart)
+            // @ts-ignore
+            this.frequencyPolygonRelativeChart.destroy();
         // @ts-ignore
         this.frequencyPolygonRelativeChart = new Chart(chart.getContext('2d'), {
             type: 'scatter',
@@ -395,6 +401,9 @@ var ChartHandler = /** @class */ (function () {
     };
     ChartHandler.prototype.updateComulativeCurve = function (xMin, xMax, data) {
         var chart = document.getElementById('comulativeCurve');
+        if (this.comulativeCurveChart)
+            // @ts-ignore
+            this.comulativeCurveChart.destroy();
         // @ts-ignore
         this.comulativeCurveChart = new Chart(chart.getContext('2d'), {
             type: 'scatter',
@@ -451,6 +460,9 @@ var ChartHandler = /** @class */ (function () {
     };
     ChartHandler.prototype.updateComulativeCurveRelative = function (xMin, xMax, data) {
         var chart = document.getElementById('comulativeCurveRelative');
+        if (this.comulativeCurveRelativeChart)
+            // @ts-ignore
+            this.comulativeCurveRelativeChart.destroy();
         // @ts-ignore
         this.comulativeCurveRelativeChart = new Chart(chart.getContext('2d'), {
             type: 'scatter',
@@ -575,6 +587,9 @@ var ChartHandler = /** @class */ (function () {
             pointBackgroundColor: ['#fff', '#0000ff'],
             pointBorderColor: ['#fff', '#0000ff']
         });
+        if (this.empiricalDistibutionChart)
+            // @ts-ignore
+            this.empiricalDistibutionChart.destroy();
         // @ts-ignore
         this.empiricalDistibutionChart = new Chart(chart.getContext('2d'), {
             type: 'scatter',

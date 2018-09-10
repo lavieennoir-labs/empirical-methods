@@ -332,6 +332,9 @@ class ChartHandler {
 
     public updateFrequencyPolygon(xMin: number, xMax: number, data: Object[]) {
         let chart = document.getElementById('frequencyPolygon') as HTMLCanvasElement;
+        if (this.frequencyPolygonChart)
+            // @ts-ignore
+            this.frequencyPolygonChart.destroy();
         // @ts-ignore
         this.frequencyPolygonChart = new Chart(chart.getContext('2d'),
             {
@@ -389,6 +392,9 @@ class ChartHandler {
     }
     public updateFrequencyPolygonRelative(xMin: number, xMax: number, data: Object[]) {
         let chart = document.getElementById('frequencyPolygonRelative') as HTMLCanvasElement;
+        if (this.frequencyPolygonRelativeChart)
+            // @ts-ignore
+            this.frequencyPolygonRelativeChart.destroy();
         // @ts-ignore
         this.frequencyPolygonRelativeChart = new Chart(chart.getContext('2d'),
             {
@@ -447,6 +453,9 @@ class ChartHandler {
 
     public updateComulativeCurve(xMin: number, xMax: number, data: Object[]) {
         let chart = document.getElementById('comulativeCurve') as HTMLCanvasElement;
+        if (this.comulativeCurveChart)
+            // @ts-ignore
+            this.comulativeCurveChart.destroy();
         // @ts-ignore
         this.comulativeCurveChart = new Chart(chart.getContext('2d'),
             {
@@ -504,6 +513,9 @@ class ChartHandler {
     }
     public updateComulativeCurveRelative(xMin: number, xMax: number, data: Object[]) {
         let chart = document.getElementById('comulativeCurveRelative') as HTMLCanvasElement;
+        if (this.comulativeCurveRelativeChart)
+            // @ts-ignore
+            this.comulativeCurveRelativeChart.destroy();
         // @ts-ignore
         this.comulativeCurveRelativeChart = new Chart(chart.getContext('2d'),
             {
@@ -631,6 +643,9 @@ class ChartHandler {
             pointBorderColor: ['#fff', '#0000ff']
         });
 
+        if (this.empiricalDistibutionChart)
+            // @ts-ignore
+            this.empiricalDistibutionChart.destroy();
         // @ts-ignore
         this.empiricalDistibutionChart = new Chart(chart.getContext('2d'),
             {
