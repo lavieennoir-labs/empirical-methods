@@ -3,9 +3,12 @@ tr {
     min-width: 60px;
     vertical-align: middle !important;
   }
-  td {
-    min-width: 120px;
+  td{
+    min-width: 60px;
   }
+}
+#input-row td{
+  min-width: 120px;
 }
 table {
   margin-bottom: 0 !important;

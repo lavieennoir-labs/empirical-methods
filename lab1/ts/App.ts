@@ -63,8 +63,23 @@ class App {
             self.dataRow.append(self.createNewElementContent(val));
         });
     }
+    public writeMap(keyRowId: string, valRowId: string, keys: number[], values: number[]): void {
+        let keyRow = $('#' + keyRowId);
+        let valRow = $('#' + valRowId);
+        keyRow.children('td').remove();
+        valRow.children('td').remove();
+
+        for (let i = 0; i < keys.length; i++) {
+            keyRow.append(this.createNewCellContent(keys[i]));
+            valRow.append(this.createNewCellContent(values[i]));
+        }
+    }
     public updateResult(): void {
         this.propCalculator = new PropCalculator(this.data);
+        this.writeMap('rowByFrequencyVar', 'rowByFrequencyValue',
+            this.propCalculator.uniqueVariants, this.propCalculator.frequencyValues);
+        this.writeMap('rowByRelativeFrequencyVar', 'rowByRelativeFrequencyValue',
+            this.propCalculator.uniqueVariants, Utils.roundArray(this.propCalculator.relativeFrequencyValues, this.precition));
         $('#avgEmpirical')[0].innerText =
             Utils.round(this.propCalculator.avgEmpirical, this.precition).toString();
         $('#moda')[0].innerText =
@@ -77,10 +92,6 @@ class App {
             Utils.round(this.propCalculator.dispersion, this.precition).toString();
         $('#avgSqrDeviation')[0].innerText =
             Utils.round(this.propCalculator.avgSqrDeviation, this.precition).toString();
-        $('#fixedDispersion')[0].innerText =
-            Utils.round(this.propCalculator.fixedDispersion, this.precition).toString();
-        $('#fixedAvgSqrDeviation')[0].innerText =
-            Utils.round(this.propCalculator.fixedAvgSqrDeviation, this.precition).toString();
         $('#variation')[0].innerText =
             Utils.round(this.propCalculator.variation, this.precition).toString();
         $('#asymetry')[0].innerText =
@@ -95,8 +106,12 @@ class App {
         }
         this.chartHandler.updateFrequencyPolygon(this.data[0] - 2, this.data[this.data.length - 1] + 2,
             this.propCalculator.getFrequencyPolygonData());
+        this.chartHandler.updateFrequencyPolygonRelative(this.data[0] - 2, this.data[this.data.length - 1] + 2,
+            this.propCalculator.getFrequencyPolygonRelativeData());
         this.chartHandler.updateComulativeCurve(this.data[0] - 2, this.data[this.data.length - 1] + 2,
             this.propCalculator.getComulativeCurveData());
+        this.chartHandler.updateComulativeCurveRelative(this.data[0] - 2, this.data[this.data.length - 1] + 2,
+            this.propCalculator.getComulativeCurveRelativeData());
         this.chartHandler.updateEmpiricalDistribution(this.data[0] - 2, this.data[this.data.length - 1] + 2,
             this.propCalculator.getEmpiricalDistributionData());
     }
@@ -104,11 +119,15 @@ class App {
     protected createNewElementContent(value: number): string {
         return "<td><input class='form-control' type='number' value='" + value + "'/></td>";
     }
+    protected createNewCellContent(value: number): string {
+        return "<td>" + value + "</td>";
+    }
 }
 
 class PropCalculator {
     public data: number[];
     public frequencyMap: Object;
+    public relativeFrequencyMap: Object;
     public amountOfVariables: number;
     public amount: number;
     public avgEmpirical: number;
@@ -118,25 +137,24 @@ class PropCalculator {
     public width: number;
     public dispersion: number;
     public avgSqrDeviation: number;
-    public fixedDispersion: number;
-    public fixedAvgSqrDeviation: number;
     public variation: number;
     public asymetry: number;
     public excess: number;
     public uniqueVariants: number[];
+    public frequencyValues: number[];
+    public relativeFrequencyValues: number[];
 
     constructor(data: number[]) {
         this.data = data
         this.amount = data.length;
         this.getFrequencyMap();
+        this.getRelativeFrequencyMap();
         this.getAvgEmpiricalValue();
         this.getModa();
         this.getMediana();
         this.getWidth();
         this.getDispersion();
         this.getDeviation();
-        this.getFixedDispersion();
-        this.getFixedDeviation();
         this.getVariation();
         this.getAsymetry();
         this.getExcess();
@@ -155,6 +173,17 @@ class PropCalculator {
                 this.amountOfVariables++;
             }
         return this.frequencyMap;
+    }
+    public getRelativeFrequencyMap(): Object {
+        this.relativeFrequencyMap = {};
+        this.frequencyValues = [];
+        this.relativeFrequencyValues = [];
+        for (let i = 0; i < this.uniqueVariants.length; i++) {
+            this.relativeFrequencyMap[this.uniqueVariants[i]] = this.frequencyMap[this.uniqueVariants[i]] / this.amount;
+            this.frequencyValues.push(this.frequencyMap[this.uniqueVariants[i]]);
+            this.relativeFrequencyValues.push(this.relativeFrequencyMap[this.uniqueVariants[i]]);
+        }
+        return this.relativeFrequencyMap;
     }
 
     public getAvgEmpiricalValue(): number {
@@ -207,14 +236,6 @@ class PropCalculator {
         this.avgSqrDeviation = Math.sqrt(this.dispersion);
         return this.avgSqrDeviation;
     }
-    public getFixedDispersion(): number {
-        this.fixedDispersion = 0;
-        return this.fixedDispersion;
-    }
-    public getFixedDeviation(): number {
-        this.fixedAvgSqrDeviation = 0;
-        return this.fixedAvgSqrDeviation;
-    }
     public getVariation(): number {
         this.variation = this.avgSqrDeviation / this.avgEmpirical * 100;
         return this.variation;
@@ -254,11 +275,32 @@ class PropCalculator {
             });
         return data;
     }
+    public getFrequencyPolygonRelativeData(): Object[] {
+        let data = [];
+        for (let i = 0; i < this.amountOfVariables; i++)
+            data.push({
+                x: this.uniqueVariants[i],
+                y: Utils.round(this.relativeFrequencyMap[this.uniqueVariants[i]], 3)
+            });
+        return data;
+    }
     public getComulativeCurveData(): Object[] {
         let data = [];
         let funcVal = 0;
         for (let i = 0; i < this.amountOfVariables; i++) {
             funcVal += this.frequencyMap[this.uniqueVariants[i]];
+            data.push({
+                x: this.uniqueVariants[i],
+                y: Utils.round(funcVal, 3)
+            });
+        }
+        return data;
+    }
+    public getComulativeCurveRelativeData(): Object[] {
+        let data = [];
+        let funcVal = 0;
+        for (let i = 0; i < this.amountOfVariables; i++) {
+            funcVal += this.relativeFrequencyMap[this.uniqueVariants[i]];
             data.push({
                 x: this.uniqueVariants[i],
                 y: Utils.round(funcVal, 3)
@@ -284,6 +326,8 @@ class PropCalculator {
 class ChartHandler {
     public frequencyPolygonChart: Object;
     public comulativeCurveChart: Object;
+    public frequencyPolygonRelativeChart: Object;
+    public comulativeCurveRelativeChart: Object;
     public empiricalDistibutionChart: Object;
 
     public updateFrequencyPolygon(xMin: number, xMax: number, data: Object[]) {
@@ -343,6 +387,63 @@ class ChartHandler {
                 }
             });
     }
+    public updateFrequencyPolygonRelative(xMin: number, xMax: number, data: Object[]) {
+        let chart = document.getElementById('frequencyPolygonRelative') as HTMLCanvasElement;
+        // @ts-ignore
+        this.frequencyPolygonRelativeChart = new Chart(chart.getContext('2d'),
+            {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        showLine: true,
+                        fill: false,
+                        tension: 0,
+                        data: data,
+                        borderColor: [
+                            'rgba(0,0,255,1)'
+                        ],
+                        borderWidth: 2,
+                        pointBackgroundColor: '#0000ff',
+                        pointBorderColor: '#0000ff'
+                    }]
+                },
+                options: {
+                    legend: {
+                        display: false
+                    },
+                    scales: {
+                        xAxes: [{
+                            position: 'bottom',
+                            type: 'linear',
+                            gridLines: {
+                                display: false
+                            },
+                            ticks: {
+                                max: xMax,
+                                min: xMin
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Xᵢ',
+                                fontSize: 16,
+                                fontStyle: 'bold'
+                            }
+                        }],
+                        yAxes: [{
+                            ticks: {
+                                min: 0
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'p*ᵢ',
+                                fontSize: 16,
+                                fontStyle: 'bold'
+                            }
+                        }]
+                    },
+                }
+            });
+    }
 
     public updateComulativeCurve(xMin: number, xMax: number, data: Object[]) {
         let chart = document.getElementById('comulativeCurve') as HTMLCanvasElement;
@@ -392,7 +493,64 @@ class ChartHandler {
                             },
                             scaleLabel: {
                                 display: true,
-                                labelString: 'nᵢ',
+                                labelString: '∑mᵢ',
+                                fontSize: 16,
+                                fontStyle: 'bold'
+                            }
+                        }]
+                    },
+                }
+            });
+    }
+    public updateComulativeCurveRelative(xMin: number, xMax: number, data: Object[]) {
+        let chart = document.getElementById('comulativeCurveRelative') as HTMLCanvasElement;
+        // @ts-ignore
+        this.comulativeCurveRelativeChart = new Chart(chart.getContext('2d'),
+            {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        showLine: true,
+                        fill: false,
+                        tension: 0,
+                        data: data,
+                        borderColor: [
+                            'rgba(0,0,255,1)'
+                        ],
+                        borderWidth: 2,
+                        pointBackgroundColor: '#0000ff',
+                        pointBorderColor: '#0000ff'
+                    }]
+                },
+                options: {
+                    legend: {
+                        display: false
+                    },
+                    scales: {
+                        xAxes: [{
+                            position: 'bottom',
+                            type: 'linear',
+                            gridLines: {
+                                display: false
+                            },
+                            ticks: {
+                                max: xMax,
+                                min: xMin
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Xᵢ',
+                                fontSize: 16,
+                                fontStyle: 'bold'
+                            }
+                        }],
+                        yAxes: [{
+                            ticks: {
+                                min: 0
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: '∑p*ᵢ',
                                 fontSize: 16,
                                 fontStyle: 'bold'
                             }

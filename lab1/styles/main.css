@@ -3,6 +3,9 @@ tr th {
   vertical-align: middle !important; }
 
 tr td {
+  min-width: 60px; }
+
+#input-row td {
   min-width: 120px; }
 
 table {

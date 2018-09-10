@@ -55,8 +55,20 @@ var App = /** @class */ (function () {
             self.dataRow.append(self.createNewElementContent(val));
         });
     };
+    App.prototype.writeMap = function (keyRowId, valRowId, keys, values) {
+        var keyRow = $('#' + keyRowId);
+        var valRow = $('#' + valRowId);
+        keyRow.children('td').remove();
+        valRow.children('td').remove();
+        for (var i = 0; i < keys.length; i++) {
+            keyRow.append(this.createNewCellContent(keys[i]));
+            valRow.append(this.createNewCellContent(values[i]));
+        }
+    };
     App.prototype.updateResult = function () {
         this.propCalculator = new PropCalculator(this.data);
+        this.writeMap('rowByFrequencyVar', 'rowByFrequencyValue', this.propCalculator.uniqueVariants, this.propCalculator.frequencyValues);
+        this.writeMap('rowByRelativeFrequencyVar', 'rowByRelativeFrequencyValue', this.propCalculator.uniqueVariants, Utils.roundArray(this.propCalculator.relativeFrequencyValues, this.precition));
         $('#avgEmpirical')[0].innerText =
             Utils.round(this.propCalculator.avgEmpirical, this.precition).toString();
         $('#moda')[0].innerText =
@@ -69,10 +81,6 @@ var App = /** @class */ (function () {
             Utils.round(this.propCalculator.dispersion, this.precition).toString();
         $('#avgSqrDeviation')[0].innerText =
             Utils.round(this.propCalculator.avgSqrDeviation, this.precition).toString();
-        $('#fixedDispersion')[0].innerText =
-            Utils.round(this.propCalculator.fixedDispersion, this.precition).toString();
-        $('#fixedAvgSqrDeviation')[0].innerText =
-            Utils.round(this.propCalculator.fixedAvgSqrDeviation, this.precition).toString();
         $('#variation')[0].innerText =
             Utils.round(this.propCalculator.variation, this.precition).toString();
         $('#asymetry')[0].innerText =
@@ -86,11 +94,16 @@ var App = /** @class */ (function () {
                 Utils.round(this.propCalculator.getCentaralEmpiricalMoment(i), this.precition).toString();
         }
         this.chartHandler.updateFrequencyPolygon(this.data[0] - 2, this.data[this.data.length - 1] + 2, this.propCalculator.getFrequencyPolygonData());
+        this.chartHandler.updateFrequencyPolygonRelative(this.data[0] - 2, this.data[this.data.length - 1] + 2, this.propCalculator.getFrequencyPolygonRelativeData());
         this.chartHandler.updateComulativeCurve(this.data[0] - 2, this.data[this.data.length - 1] + 2, this.propCalculator.getComulativeCurveData());
+        this.chartHandler.updateComulativeCurveRelative(this.data[0] - 2, this.data[this.data.length - 1] + 2, this.propCalculator.getComulativeCurveRelativeData());
         this.chartHandler.updateEmpiricalDistribution(this.data[0] - 2, this.data[this.data.length - 1] + 2, this.propCalculator.getEmpiricalDistributionData());
     };
     App.prototype.createNewElementContent = function (value) {
         return "<td><input class='form-control' type='number' value='" + value + "'/></td>";
+    };
+    App.prototype.createNewCellContent = function (value) {
+        return "<td>" + value + "</td>";
     };
     return App;
 }());
@@ -99,14 +112,13 @@ var PropCalculator = /** @class */ (function () {
         this.data = data;
         this.amount = data.length;
         this.getFrequencyMap();
+        this.getRelativeFrequencyMap();
         this.getAvgEmpiricalValue();
         this.getModa();
         this.getMediana();
         this.getWidth();
         this.getDispersion();
         this.getDeviation();
-        this.getFixedDispersion();
-        this.getFixedDeviation();
         this.getVariation();
         this.getAsymetry();
         this.getExcess();
@@ -124,6 +136,17 @@ var PropCalculator = /** @class */ (function () {
                 this.amountOfVariables++;
             }
         return this.frequencyMap;
+    };
+    PropCalculator.prototype.getRelativeFrequencyMap = function () {
+        this.relativeFrequencyMap = {};
+        this.frequencyValues = [];
+        this.relativeFrequencyValues = [];
+        for (var i = 0; i < this.uniqueVariants.length; i++) {
+            this.relativeFrequencyMap[this.uniqueVariants[i]] = this.frequencyMap[this.uniqueVariants[i]] / this.amount;
+            this.frequencyValues.push(this.frequencyMap[this.uniqueVariants[i]]);
+            this.relativeFrequencyValues.push(this.relativeFrequencyMap[this.uniqueVariants[i]]);
+        }
+        return this.relativeFrequencyMap;
     };
     PropCalculator.prototype.getAvgEmpiricalValue = function () {
         this.avgEmpirical = 0;
@@ -171,14 +194,6 @@ var PropCalculator = /** @class */ (function () {
         this.avgSqrDeviation = Math.sqrt(this.dispersion);
         return this.avgSqrDeviation;
     };
-    PropCalculator.prototype.getFixedDispersion = function () {
-        this.fixedDispersion = 0;
-        return this.fixedDispersion;
-    };
-    PropCalculator.prototype.getFixedDeviation = function () {
-        this.fixedAvgSqrDeviation = 0;
-        return this.fixedAvgSqrDeviation;
-    };
     PropCalculator.prototype.getVariation = function () {
         this.variation = this.avgSqrDeviation / this.avgEmpirical * 100;
         return this.variation;
@@ -216,11 +231,32 @@ var PropCalculator = /** @class */ (function () {
             });
         return data;
     };
+    PropCalculator.prototype.getFrequencyPolygonRelativeData = function () {
+        var data = [];
+        for (var i = 0; i < this.amountOfVariables; i++)
+            data.push({
+                x: this.uniqueVariants[i],
+                y: Utils.round(this.relativeFrequencyMap[this.uniqueVariants[i]], 3)
+            });
+        return data;
+    };
     PropCalculator.prototype.getComulativeCurveData = function () {
         var data = [];
         var funcVal = 0;
         for (var i = 0; i < this.amountOfVariables; i++) {
             funcVal += this.frequencyMap[this.uniqueVariants[i]];
+            data.push({
+                x: this.uniqueVariants[i],
+                y: Utils.round(funcVal, 3)
+            });
+        }
+        return data;
+    };
+    PropCalculator.prototype.getComulativeCurveRelativeData = function () {
+        var data = [];
+        var funcVal = 0;
+        for (var i = 0; i < this.amountOfVariables; i++) {
+            funcVal += this.relativeFrequencyMap[this.uniqueVariants[i]];
             data.push({
                 x: this.uniqueVariants[i],
                 y: Utils.round(funcVal, 3)
@@ -301,6 +337,62 @@ var ChartHandler = /** @class */ (function () {
             }
         });
     };
+    ChartHandler.prototype.updateFrequencyPolygonRelative = function (xMin, xMax, data) {
+        var chart = document.getElementById('frequencyPolygonRelative');
+        // @ts-ignore
+        this.frequencyPolygonRelativeChart = new Chart(chart.getContext('2d'), {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                        showLine: true,
+                        fill: false,
+                        tension: 0,
+                        data: data,
+                        borderColor: [
+                            'rgba(0,0,255,1)'
+                        ],
+                        borderWidth: 2,
+                        pointBackgroundColor: '#0000ff',
+                        pointBorderColor: '#0000ff'
+                    }]
+            },
+            options: {
+                legend: {
+                    display: false
+                },
+                scales: {
+                    xAxes: [{
+                            position: 'bottom',
+                            type: 'linear',
+                            gridLines: {
+                                display: false
+                            },
+                            ticks: {
+                                max: xMax,
+                                min: xMin
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Xᵢ',
+                                fontSize: 16,
+                                fontStyle: 'bold'
+                            }
+                        }],
+                    yAxes: [{
+                            ticks: {
+                                min: 0
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'p*ᵢ',
+                                fontSize: 16,
+                                fontStyle: 'bold'
+                            }
+                        }]
+                },
+            }
+        });
+    };
     ChartHandler.prototype.updateComulativeCurve = function (xMin, xMax, data) {
         var chart = document.getElementById('comulativeCurve');
         // @ts-ignore
@@ -348,7 +440,63 @@ var ChartHandler = /** @class */ (function () {
                             },
                             scaleLabel: {
                                 display: true,
-                                labelString: 'nᵢ',
+                                labelString: '∑mᵢ',
+                                fontSize: 16,
+                                fontStyle: 'bold'
+                            }
+                        }]
+                },
+            }
+        });
+    };
+    ChartHandler.prototype.updateComulativeCurveRelative = function (xMin, xMax, data) {
+        var chart = document.getElementById('comulativeCurveRelative');
+        // @ts-ignore
+        this.comulativeCurveRelativeChart = new Chart(chart.getContext('2d'), {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                        showLine: true,
+                        fill: false,
+                        tension: 0,
+                        data: data,
+                        borderColor: [
+                            'rgba(0,0,255,1)'
+                        ],
+                        borderWidth: 2,
+                        pointBackgroundColor: '#0000ff',
+                        pointBorderColor: '#0000ff'
+                    }]
+            },
+            options: {
+                legend: {
+                    display: false
+                },
+                scales: {
+                    xAxes: [{
+                            position: 'bottom',
+                            type: 'linear',
+                            gridLines: {
+                                display: false
+                            },
+                            ticks: {
+                                max: xMax,
+                                min: xMin
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Xᵢ',
+                                fontSize: 16,
+                                fontStyle: 'bold'
+                            }
+                        }],
+                    yAxes: [{
+                            ticks: {
+                                min: 0
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: '∑p*ᵢ',
                                 fontSize: 16,
                                 fontStyle: 'bold'
                             }
