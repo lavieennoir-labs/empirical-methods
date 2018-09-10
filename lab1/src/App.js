@@ -66,6 +66,7 @@ var App = /** @class */ (function () {
         }
     };
     App.prototype.updateResult = function () {
+        this.chartHandler.deleteCharts();
         this.propCalculator = new PropCalculator(this.data);
         this.writeMap('rowByFrequencyVar', 'rowByFrequencyValue', this.propCalculator.uniqueVariants, this.propCalculator.frequencyValues);
         this.writeMap('rowByRelativeFrequencyVar', 'rowByRelativeFrequencyValue', this.propCalculator.uniqueVariants, Utils.roundArray(this.propCalculator.relativeFrequencyValues, this.precition));
@@ -281,11 +282,25 @@ var PropCalculator = /** @class */ (function () {
 var ChartHandler = /** @class */ (function () {
     function ChartHandler() {
     }
-    ChartHandler.prototype.updateFrequencyPolygon = function (xMin, xMax, data) {
-        var chart = document.getElementById('frequencyPolygon');
+    ChartHandler.prototype.deleteCharts = function () {
         if (this.frequencyPolygonChart)
             // @ts-ignore
             this.frequencyPolygonChart.destroy();
+        if (this.frequencyPolygonRelativeChart)
+            // @ts-ignore
+            this.frequencyPolygonRelativeChart.destroy();
+        if (this.comulativeCurveChart)
+            // @ts-ignore
+            this.comulativeCurveChart.destroy();
+        if (this.comulativeCurveRelativeChart)
+            // @ts-ignore
+            this.comulativeCurveRelativeChart.destroy();
+        if (this.empiricalDistibutionChart)
+            // @ts-ignore
+            this.empiricalDistibutionChart.destroy();
+    };
+    ChartHandler.prototype.updateFrequencyPolygon = function (xMin, xMax, data) {
+        var chart = document.getElementById('frequencyPolygon');
         // @ts-ignore
         this.frequencyPolygonChart = new Chart(chart.getContext('2d'), {
             type: 'scatter',
@@ -342,9 +357,6 @@ var ChartHandler = /** @class */ (function () {
     };
     ChartHandler.prototype.updateFrequencyPolygonRelative = function (xMin, xMax, data) {
         var chart = document.getElementById('frequencyPolygonRelative');
-        if (this.frequencyPolygonRelativeChart)
-            // @ts-ignore
-            this.frequencyPolygonRelativeChart.destroy();
         // @ts-ignore
         this.frequencyPolygonRelativeChart = new Chart(chart.getContext('2d'), {
             type: 'scatter',
@@ -401,9 +413,6 @@ var ChartHandler = /** @class */ (function () {
     };
     ChartHandler.prototype.updateComulativeCurve = function (xMin, xMax, data) {
         var chart = document.getElementById('comulativeCurve');
-        if (this.comulativeCurveChart)
-            // @ts-ignore
-            this.comulativeCurveChart.destroy();
         // @ts-ignore
         this.comulativeCurveChart = new Chart(chart.getContext('2d'), {
             type: 'scatter',
@@ -460,9 +469,6 @@ var ChartHandler = /** @class */ (function () {
     };
     ChartHandler.prototype.updateComulativeCurveRelative = function (xMin, xMax, data) {
         var chart = document.getElementById('comulativeCurveRelative');
-        if (this.comulativeCurveRelativeChart)
-            // @ts-ignore
-            this.comulativeCurveRelativeChart.destroy();
         // @ts-ignore
         this.comulativeCurveRelativeChart = new Chart(chart.getContext('2d'), {
             type: 'scatter',
@@ -587,9 +593,6 @@ var ChartHandler = /** @class */ (function () {
             pointBackgroundColor: ['#fff', '#0000ff'],
             pointBorderColor: ['#fff', '#0000ff']
         });
-        if (this.empiricalDistibutionChart)
-            // @ts-ignore
-            this.empiricalDistibutionChart.destroy();
         // @ts-ignore
         this.empiricalDistibutionChart = new Chart(chart.getContext('2d'), {
             type: 'scatter',
