@@ -1,0 +1,38 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "ts watch",
+            "type": "typescript",
+            "tsconfig": "tsconfig.json",
+            "option": "watch",
+            "problemMatcher": [
+                "$tsc-watch"
+            ]
+        },
+        {
+            "label": "Start http server",
+            "type": "shell",
+            "command": "http-server ./",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Scss watch",
+            "type": "gulp",
+            "task": "default",
+            "problemMatcher": []
+        },
+        {
+            "label": "Scss compile",
+            "type": "gulp",
+            "task": "sass",
+            "problemMatcher": []
+        }
+    ]
+}

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Lab1</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" media="screen" href="node_modules/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" media="screen" href="styles/main.css" />
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <h1 class="mb-4">Дискретні емпіричні ряди та їх характеристики</h1>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <p>Дискретний ряд даних</p>
+            <div class="table-responsive table-bordered">
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr id="input-row">
+                            <th scope="row">X =</th>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <button class="btn btn-outline-success my-4" onclick="app.readDataSet();app.updateResult();">Обчислити</button>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Середнє емпіричне</h3>
+            <!--Place images here later
+            <div class="w-100 mb-2">
+                <img height="90px" src="assets/avg-emp.png" alt="Середнє емпіричне" />
+            </div>
+            -->
+            <p class="w-100"><span class="overlined">x</span> = <span id="avgEmpirical"></span></p>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Мода</h3>
+            <p class="w-100"><i>Mo*</i> = <span id="moda"></span></p>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Медіана</h3>
+            <p class="w-100"><i>Me*</i> = <span id="mediana"></span></p>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Розмах</h3>
+            <p class="w-100"><i>R*</i> = <span id="width"></span></p>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Дисперсія</h3>
+            <p class="w-100"><i>D*</i> = <span id="dispersion"></span></p>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Середнє квадратичне відхилення</h3>
+            <p class="w-100"><i>σ*</i> = <span id="avgSqrDeviation"></span></p>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Виправлена дисперсія</h3>
+            <p class="w-100"><i>???*</i> = <span id="fixedDispersion"></span></p>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Виправлене середнє квадратичне відхилення</h3>
+            <p class="w-100"><i>???*</i> = <span id="fixedAvgSqrDeviation"></span></p>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Коефіцієнт варіації</h3>
+            <p class="w-100"><i>V*</i> = <span id="variation"></span>%</p>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Коефіцієнт асиметрії</h3>
+            <p class="w-100"><i>A*</i> = <span id="asymetry"></span></p>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Ексцес</h3>
+            <p class="w-100"><i>E*</i> = <span id="excess"></span></p>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Початкові емпіричні моменти</h3>
+            <p class="w-100"><i>ν*<sub>1</sub></i> = <span id="startEmpiricalMoment1"></span></p>
+            <p class="w-100"><i>ν*<sub>2</sub></i> = <span id="startEmpiricalMoment2"></span></p>
+            <p class="w-100"><i>ν*<sub>3</sub></i> = <span id="startEmpiricalMoment3"></span></p>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Центральні емпіричні моменти</h3>
+            <p class="w-100"><i>μ*<sub>1</sub></i> = <span id="centralEmpiricalMoment1"></span></p>
+            <p class="w-100"><i>μ*<sub>2</sub></i> = <span id="centralEmpiricalMoment2"></span></p>
+            <p class="w-100"><i>μ*<sub>3</sub></i> = <span id="centralEmpiricalMoment3"></span></p>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Полігон частот</h3>
+            <canvas id="frequencyPolygon" width="400" height="200"></canvas>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Кумулятивна крива</h3>
+            <canvas id="comulativeCurve" width="400" height="200"></canvas>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Емпірична функція розподілу</h3>
+            <canvas id="empiricalDistibution" width="400" height="200"></canvas>
+        </div>
+
+    </div>
+    <script src="node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="node_modules/chart.js/dist/Chart.min.js"></script>
+    <script src="node_modules/bootstrap/dist/js/bootstrap.js"></script>
+    <script src="src/app.js"></script>
+    <script>
+        let app = new App('input-row');
+    </script>
+</body>
+
+</html>

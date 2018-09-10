@@ -1,0 +1,23 @@
+tr {
+  th {
+    min-width: 60px;
+    vertical-align: middle !important;
+  }
+  td {
+    min-width: 120px;
+  }
+}
+table {
+  margin-bottom: 0 !important;
+}
+
+.overlined {
+  text-decoration: overline;
+}
+.divider {
+  height: 0;
+  margin: .5rem 0;
+  overflow: hidden;
+  border-top: 1px solid #e9ecef;
+  width: 100%;
+}
