@@ -27,7 +27,7 @@ var Utils = /** @class */ (function () {
 }());
 var App = /** @class */ (function () {
     function App(dataRowId) {
-        this.data = [-5, -5, -5, -5, -5, -4.6, -4.6, -4.6, -4.4, -4.4, -4.4, -4.4, -4.2, -4.2, -4.2, -4.2, -4.2, -4, -3.6, -3.6, -3.6, -3.6, -3.6, -3.6, -3.6, -3.6, -3.6, -3.6, -3.4, -3.4, -3.4, -3.4, -3.2, -3.2, -3.2, -3.2, -3.2, -3.2, -3, -2.6, -2.6, -2.6, -2.4, -2.4, -2.4, -2.4, -2.2, -2, -2.2, -2.2, -2.2, -2, -1.6, -1.6, -1.6, -1.4, -1.4, -1.4, -1.2, -1.2, -1.2, -1.2, -1.2, -1.2, -1, -0.6, -0.6, -0.6, -0.4, -0.4, -0.4, -0.4, -0.2, -0.2, -0.2, -0.2, -0.2, 0, 0.2, 0.2, 0.2, 0.2, 0.2, 0.4, 0.4, 0.4, 0.4, 0.6, 0.6, 0.6, 1, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.4, 1.4, 1.4, 1.6, 1.6, 1.6, 2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.4, 2.4, 2.4, 2.4, 2.6, 2.6, 2.6, 3, 3.2, 3.2, 3.2, 3.2, 3.2, 3.4, 3.4, 3.4, 3.4, 3.6, 3.6, 3.6, 4, 4.2, 4.2, 4.2, 4.2, 4.2, 4.4, 4.4, 4.4, 4.4, 4.6, 4.6, 4.6, 4.6, 4.6, 5, 5, 5, 5];
+        this.data = [-4.4, -4.2, -3.6, -2.4, -2, -0.6, -0.6, -0.2, -0.2, 0.4, 0.6, 1.4, 2.4, 2.6, 2.6];
         this.precition = 3;
         this.momentCount = 3;
         this.dataRow = $('#' + dataRowId);
@@ -88,7 +88,7 @@ var App = /** @class */ (function () {
             Utils.round(this.propCalculator.asymetry, this.precition).toString();
         $('#excess')[0].innerText =
             Utils.round(this.propCalculator.excess, this.precition).toString();
-        for (var i = 1; i <= this.momentCount; i++) {
+        for (var i = 0; i <= this.momentCount; i++) {
             $('#startEmpiricalMoment' + i)[0].innerText =
                 Utils.round(this.propCalculator.getStartEmpiricalMoment(i), this.precition).toString();
             $('#centralEmpiricalMoment' + i)[0].innerText =
@@ -342,7 +342,8 @@ var ChartHandler = /** @class */ (function () {
                         }],
                     yAxes: [{
                             ticks: {
-                                min: 0
+                                min: 0,
+                                max: 2.0001
                             },
                             scaleLabel: {
                                 display: true,
@@ -510,7 +511,8 @@ var ChartHandler = /** @class */ (function () {
                         }],
                     yAxes: [{
                             ticks: {
-                                min: 0
+                                min: 0,
+                                max: 1.0001
                             },
                             scaleLabel: {
                                 display: true,
