@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Lab2</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" media="screen" href="node_modules/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" media="screen" href="styles/main.css" />
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <h1 class="mb-4">Інтервальні емпіричні ряди та їх характеристики</h1>
+        </div>  
+        <div class="row">
+            <div class="divider"></div>
+            <p>Експериментальні дані</p>
+            <div class="table-responsive table-bordered">
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr id="input-row">
+                            <th scope="row">X =</th>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <button class="btn btn-outline-success my-4" onclick="app.readDataSet();app.updateResult();">Обчислити</button>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Інтервальний емпіричний ряд за частотами</h3>
+            <div class="table-responsive table-bordered">
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr id="rowByFrequencyVar">
+                            <th scope="row">[X<sub>i</sub>, X<sub>i+1</sub>)</th>
+                        </tr>
+                        <tr id="rowByFrequencyValue">
+                            <th scope="row">m<sub>i</sub></th>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Інтервальний емпіричний ряд за відносними частотами</h3>
+            <div class="table-responsive table-bordered">
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr id="rowByRelativeFrequencyVar">
+                            <th scope="row">[X<sub>i</sub>, X<sub>i+1</sub>)</th>
+                        </tr>
+                        <tr id="rowByRelativeFrequencyValue">
+                            <th scope="row">p*<sub>i</sub></th>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Дискретний емпіричний ряд</h3>
+            <div class="table-responsive table-bordered">
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr id="rowDiscreteVar">
+                            <th scope="row">[X<sub>i</sub>, X<sub>i+1</sub>)</th>
+                        </tr>
+                        <tr id="rowDiscreteValue">
+                            <th scope="row">z<sub>i</sub></th>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Гістограма частот</h3>
+            <canvas id="frequencyHistogram" width="400" height="200"></canvas>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Гістограма відносних частот</h3>
+            <canvas id="frequencyHistogramRelative" width="400" height="200"></canvas>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Кумулятивна крива за частотами</h3>
+            <canvas id="comulativeCurve" width="400" height="200"></canvas>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Кумулятивна крива за відносними частотами</h3>
+            <canvas id="comulativeCurveRelative" width="400" height="200"></canvas>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Емпірична функція розподілу</h3>
+            <canvas id="empiricalDistibution" width="400" height="200"></canvas>
+        </div>
+
+        <div class="row">
+            <div class="divider"></div>
+            <h1 class="mt-5">Характеристики центральної тенденції</h1>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Середнє емпіричне</h3>
+            <p class="w-100"><span class="overlined">x</span> = <span id="avgEmpirical"></span></p>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Мода</h3>
+            <p class="w-100"><i>Mo</i> = <span id="moda"></span></p>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Медіана</h3>
+            <p class="w-100"><i>Me</i> = <span id="mediana"></span></p>
+        </div>
+
+        <div class="row">
+            <div class="divider"></div>
+            <h1 class="mt-5">Характеристики розсіювання</h1>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Розмах</h3>
+            <p class="w-100"><i>R</i> = <span id="width"></span></p>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Дисперсія</h3>
+            <p class="w-100"><i>S<sup>2</sup></i> = <span id="dispersion"></span></p>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Середнє квадратичне відхилення</h3>
+            <p class="w-100"><i>S</i> = <span id="avgSqrDeviation"></span></p>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Коефіцієнт варіації</h3>
+            <p class="w-100"><i>V</i> = <span id="variation"></span>%</p>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Початкові моменти</h3>
+            <p class="w-100"><i>ν<sub>0</sub></i> = <span id="startEmpiricalMoment0"></span></p>
+            <p class="w-100"><i>ν<sub>1</sub></i> = <span id="startEmpiricalMoment1"></span></p>
+            <p class="w-100"><i>ν<sub>2</sub></i> = <span id="startEmpiricalMoment2"></span></p>
+            <p class="w-100"><i>ν<sub>3</sub></i> = <span id="startEmpiricalMoment3"></span></p>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Центральні моменти</h3>
+            <p class="w-100"><i>μ<sub>0</sub></i> = <span id="centralEmpiricalMoment0"></span></p>
+            <p class="w-100"><i>μ<sub>1</sub></i> = <span id="centralEmpiricalMoment1"></span></p>
+            <p class="w-100"><i>μ<sub>2</sub></i> = <span id="centralEmpiricalMoment2"></span></p>
+            <p class="w-100"><i>μ<sub>3</sub></i> = <span id="centralEmpiricalMoment3"></span></p>
+        </div>
+
+        <div class="row">
+            <div class="divider"></div>
+            <h1 class="mt-5">Характеристики форми</h1>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Асиметрія</h3>
+            <p class="w-100"><i>A</i> = <span id="asymetry"></span></p>
+        </div>
+        <div class="row">
+            <div class="divider"></div>
+            <h3>Ексцес</h3>
+            <p class="w-100"><i>E</i> = <span id="excess"></span></p>
+        </div>
+
+    </div>
+    <script src="node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="node_modules/chart.js/dist/Chart.min.js"></script>
+    <script src="node_modules/bootstrap/dist/js/bootstrap.js"></script>
+    <script src="src/App2.js"></script>
+    <script>
+        let app = new App2('input-row');
+    </script>
+</body>
+
+</html>
