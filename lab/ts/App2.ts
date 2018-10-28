@@ -127,16 +127,21 @@ class App2 {
             $('#centralEmpiricalMoment' + i)[0].innerText =
                 Utils2.round(this.propCalculator.getCentaralEmpiricalMoment(i), this.precition).toString();
         }
-        //this.chartHandler.updateFrequencyPolygon(this.data[0] - 2, this.data[this.data.length - 1] + 2,
-        //    this.propCalculator.getFrequencyPolygonData());
-        //this.chartHandler.updateFrequencyPolygonRelative(this.data[0] - 2, this.data[this.data.length - 1] + 2,
-        //    this.propCalculator.getFrequencyPolygonRelativeData());
-        this.chartHandler.updateComulativeCurve(this.data[0] - 2, this.data[this.data.length - 1] + 2,
-            this.propCalculator.getComulativeCurveData());
-        this.chartHandler.updateComulativeCurveRelative(this.data[0] - 2, this.data[this.data.length - 1] + 2,
-            this.propCalculator.getComulativeCurveRelativeData());
-        this.chartHandler.updateEmpiricalDistribution(this.data[0] - 2, this.data[this.data.length - 1] + 2,
-            this.propCalculator.getEmpiricalDistributionData());
+        this.chartHandler.updateFrequencyHistogram(this.data[0], this.data[this.data.length - 1] + 2,
+            this.propCalculator.getFrequencyHistogramData(),
+            this.propCalculator.dataIntervals.map((val, idx,arr)=> val.toString()));
+        this.chartHandler.updateFrequencyHistogramRelative(this.data[0] - 2, this.data[this.data.length - 1] + 2,
+            this.propCalculator.getFrequencyHistogramRelativeData(),
+            this.propCalculator.dataIntervals.map((val, idx,arr)=> val.toString()));
+        
+        this.chartHandler.updateComulativeCurve(0, this.propCalculator.dataIntervals.length,
+            this.propCalculator.getComulativeCurveData(),
+            this.propCalculator.dataIntervals.map((val, idx,arr)=> val.toString()));        
+        this.chartHandler.updateComulativeCurveRelative(0, this.propCalculator.dataIntervals.length,
+            this.propCalculator.getComulativeCurveRelativeData(), 
+            this.propCalculator.dataIntervals.map((val, idx,arr)=> val.toString()));
+        this.chartHandler.updateEmpiricalDistribution(this.data[0], this.data[this.data.length - 1],
+            this.propCalculator.getEmpiricalDistributionData(), Utils2.roundArray(this.propCalculator.discreteValues, this.precition));
     }
 
     protected createNewElementContent(value: number): string {
@@ -373,32 +378,30 @@ class PropCalculator2 {
 
         return this.excess;
     }
-    public getFrequencyPolygonData(): Object[] {
+    public getFrequencyHistogramData(): number[] {
         let data = [];
-        for (let i = 0; i < this.amountOfVariables; i++)
-            data.push({
-                x: this.uniqueVariants[i],
-                y: Utils2.round(this.frequencyMap[this.uniqueVariants[i]], 3)
-            });
+        for (let i = 0; i < this.dataIntervals.length; i++)
+            data.push(
+                Utils2.round(this.frequencyMap[this.dataIntervals[i].toString()] / this.intervalSize, 2)
+            );
         return data;
     }
-    public getFrequencyPolygonRelativeData(): Object[] {
+    public getFrequencyHistogramRelativeData(): number[] {
         let data = [];
-        for (let i = 0; i < this.amountOfVariables; i++)
-            data.push({
-                x: this.uniqueVariants[i],
-                y: Utils2.round(this.relativeFrequencyMap[this.uniqueVariants[i]], 3)
-            });
+        for (let i = 0; i < this.dataIntervals.length; i++)
+            data.push(
+                Utils2.round(this.relativeFrequencyMap[this.dataIntervals[i].toString()] / this.intervalSize, 2)
+            );
         return data;
     }
     public getComulativeCurveData(): Object[] {
         let data = [];
         let funcVal = 0;
-        for (let i = 0; i < this.amountOfVariables; i++) {
-            funcVal += this.frequencyMap[this.uniqueVariants[i]];
+        for (let i = 0; i < this.dataIntervals.length; i++) {
+            funcVal += this.frequencyMap[this.dataIntervals[i].toString()];
             data.push({
-                x: this.uniqueVariants[i],
-                y: Utils2.round(funcVal, 3)
+                x: i,
+                y: Utils2.round(funcVal, 2)
             });
         }
         return data;
@@ -407,10 +410,10 @@ class PropCalculator2 {
         let data = [];
         let funcVal = 0;
         for (let i = 0; i < this.amountOfVariables; i++) {
-            funcVal += this.relativeFrequencyMap[this.uniqueVariants[i]];
+            funcVal += this.relativeFrequencyMap[this.dataIntervals[i].toString()];
             data.push({
-                x: this.uniqueVariants[i],
-                y: Utils2.round(funcVal, 3)
+                x: i,
+                y: Utils2.round(funcVal, 2)
             });
         }
         return data;
@@ -419,31 +422,31 @@ class PropCalculator2 {
     public getEmpiricalDistributionData(): Object[] {
         let data = [];
         let funcVal = 0;
-        for (let i = 0; i < this.amountOfVariables; i++) {
+        for (let i = 0; i < this.dataIntervals.length; i++) {
             data.push({
-                x: this.uniqueVariants[i],
-                y: Utils2.round(funcVal, 3)
+                x: Utils2.round(this.discreteValues[i], 2),
+                y: Utils2.round(funcVal, 2)
             });
-            funcVal += this.frequencyMap[this.uniqueVariants[i]] / this.amount;
+            funcVal += this.frequencyValues[i] / this.amount;
         }
         return data;
     }
 }
 
 class ChartHandler2 {
-    public frequencyPolygonChart: Object;
+    public frequencyHistogramChart: Object;
     public comulativeCurveChart: Object;
-    public frequencyPolygonRelativeChart: Object;
+    public frequencyHistogramRelativeChart: Object;
     public comulativeCurveRelativeChart: Object;
     public empiricalDistibutionChart: Object;
 
     public deleteCharts() {
-        if (this.frequencyPolygonChart)
+        if (this.frequencyHistogramChart)
             // @ts-ignore
-            this.frequencyPolygonChart.destroy();
-        if (this.frequencyPolygonRelativeChart)
+            this.frequencyHistogramChart.destroy();
+        if (this.frequencyHistogramRelativeChart)
             // @ts-ignore
-            this.frequencyPolygonRelativeChart.destroy();
+            this.frequencyHistogramRelativeChart.destroy();
         if (this.comulativeCurveChart)
             // @ts-ignore
             this.comulativeCurveChart.destroy();
@@ -455,21 +458,21 @@ class ChartHandler2 {
             this.empiricalDistibutionChart.destroy();
     }
 
-    public updateFrequencyPolygon(xMin: number, xMax: number, data: Object[]) {
-        let chart = document.getElementById('frequencyPolygon') as HTMLCanvasElement;
+    public updateFrequencyHistogram(xMin: number, xMax: number, data: Object[], names: string[]) {
+        let chart = document.getElementById('frequencyHistogram') as HTMLCanvasElement;
+        console.log(data);
         // @ts-ignore
-        this.frequencyPolygonChart = new Chart(chart.getContext('2d'),
+        this.frequencyHistogramChart = new Chart(chart.getContext('2d'),
             {
-                type: 'scatter',
+                type: 'bar',
                 data: {
+                    labels: names,
                     datasets: [{
                         showLine: true,
                         fill: false,
                         tension: 0,
                         data: data,
-                        borderColor: [
-                            'rgba(0,0,255,1)'
-                        ],
+                        borderColor: 'rgba(0,0,255,1)',
                         borderWidth: 2,
                         pointBackgroundColor: '#0000ff',
                         pointBorderColor: '#0000ff'
@@ -480,74 +483,7 @@ class ChartHandler2 {
                         display: false
                     },
                     scales: {
-                        xAxes: [{
-                            position: 'bottom',
-                            type: 'linear',
-                            gridLines: {
-                                display: false
-                            },
-                            ticks: {
-                                max: xMax,
-                                min: xMin
-                            },
-                            scaleLabel: {
-                                display: true,
-                                labelString: 'Xᵢ',
-                                fontSize: 16,
-                                fontStyle: 'bold'
-                            }
-                        }],
-                        yAxes: [{
-                            ticks: {
-                                min: 0,
-                                max: 2.0001
-                            },
-                            scaleLabel: {
-                                display: true,
-                                labelString: 'mᵢ',
-                                fontSize: 16,
-                                fontStyle: 'bold'
-                            }
-                        }]
-                    },
-                }
-            });
-    }
-    public updateFrequencyPolygonRelative(xMin: number, xMax: number, data: Object[]) {
-        let chart = document.getElementById('frequencyPolygonRelative') as HTMLCanvasElement;
-        // @ts-ignore
-        this.frequencyPolygonRelativeChart = new Chart(chart.getContext('2d'),
-            {
-                type: 'scatter',
-                data: {
-                    datasets: [{
-                        showLine: true,
-                        fill: false,
-                        tension: 0,
-                        data: data,
-                        borderColor: [
-                            'rgba(0,0,255,1)'
-                        ],
-                        borderWidth: 2,
-                        pointBackgroundColor: '#0000ff',
-                        pointBorderColor: '#0000ff'
-                    }]
-                },
-                options: {
-                    legend: {
-                        display: false
-                    },
-                    scales: {
-                        xAxes: [{
-                            position: 'bottom',
-                            type: 'linear',
-                            gridLines: {
-                                display: false
-                            },
-                            ticks: {
-                                max: xMax,
-                                min: xMin
-                            },
+                        xAxes: [{                            
                             scaleLabel: {
                                 display: true,
                                 labelString: 'Xᵢ',
@@ -561,7 +497,54 @@ class ChartHandler2 {
                             },
                             scaleLabel: {
                                 display: true,
-                                labelString: 'p*ᵢ',
+                                labelString: 'mᵢ / r',
+                                fontSize: 16,
+                                fontStyle: 'bold'
+                            }
+                        }]
+                    },
+                }
+            });
+    }
+    public updateFrequencyHistogramRelative(xMin: number, xMax: number, data: Object[], names: string[]) {
+        let chart = document.getElementById('frequencyHistogramRelative') as HTMLCanvasElement;
+        // @ts-ignore
+        this.frequencyHistogramRelativeChart = new Chart(chart.getContext('2d'),
+            {
+                type: 'bar',
+                data: {
+                    labels: names,
+                    datasets: [{
+                        showLine: true,
+                        fill: false,
+                        tension: 0,
+                        data: data,
+                        borderColor: 'rgba(0,0,255,1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#0000ff',
+                        pointBorderColor: '#0000ff'
+                    }]
+                },
+                options: {
+                    legend: {
+                        display: false
+                    },
+                    scales: {
+                        xAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Xᵢ',
+                                fontSize: 16,
+                                fontStyle: 'bold'
+                            }
+                        }],
+                        yAxes: [{
+                            ticks: {
+                                min: 0
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'p*ᵢ / r',
                                 fontSize: 16,
                                 fontStyle: 'bold'
                             }
@@ -571,13 +554,14 @@ class ChartHandler2 {
             });
     }
 
-    public updateComulativeCurve(xMin: number, xMax: number, data: Object[]) {
+    public updateComulativeCurve(xMin: number, xMax: number, data: Object[], names: string[]) {
         let chart = document.getElementById('comulativeCurve') as HTMLCanvasElement;
         // @ts-ignore
         this.comulativeCurveChart = new Chart(chart.getContext('2d'),
             {
-                type: 'scatter',
+                type: 'line',
                 data: {
+                    labels : names,
                     datasets: [{
                         showLine: true,
                         fill: false,
@@ -598,13 +582,8 @@ class ChartHandler2 {
                     scales: {
                         xAxes: [{
                             position: 'bottom',
-                            type: 'linear',
                             gridLines: {
-                                display: false
-                            },
-                            ticks: {
-                                max: xMax,
-                                min: xMin
+                                display: true
                             },
                             scaleLabel: {
                                 display: true,
@@ -628,13 +607,14 @@ class ChartHandler2 {
                 }
             });
     }
-    public updateComulativeCurveRelative(xMin: number, xMax: number, data: Object[]) {
+    public updateComulativeCurveRelative(xMin: number, xMax: number, data: Object[], names: string[]) {
         let chart = document.getElementById('comulativeCurveRelative') as HTMLCanvasElement;
         // @ts-ignore
         this.comulativeCurveRelativeChart = new Chart(chart.getContext('2d'),
             {
-                type: 'scatter',
+                type: 'line',
                 data: {
+                    labels : names,
                     datasets: [{
                         showLine: true,
                         fill: false,
@@ -655,13 +635,8 @@ class ChartHandler2 {
                     scales: {
                         xAxes: [{
                             position: 'bottom',
-                            type: 'linear',
                             gridLines: {
-                                display: false
-                            },
-                            ticks: {
-                                max: xMax,
-                                min: xMin
+                                display: true
                             },
                             scaleLabel: {
                                 display: true,
@@ -687,7 +662,7 @@ class ChartHandler2 {
             });
     }
 
-    public updateEmpiricalDistribution(xMin: number, xMax: number, data: Object[]) {
+    public updateEmpiricalDistribution(xMin: number, xMax: number, data: Object[], names:any[]) {
         let chart = document.getElementById('empiricalDistibution') as HTMLCanvasElement;
         let datasets = [{
             showLine: true,
@@ -695,7 +670,7 @@ class ChartHandler2 {
             tension: 0,
             data: [{
                 //@ts-ignore
-                x: data[0] - xMax + xMin,
+                x: 2*xMin,
                 //@ts-ignore
                 y: 0
             }, {
@@ -707,9 +682,9 @@ class ChartHandler2 {
             borderColor: [
                 'rgba(0,0,255,1)'
             ],
-            borderWidth: 4,
+            borderWidth: 2,
             pointBackgroundColor: ['#fff', '#0000ff'],
-            pointBorderColor: ['#fff', '#0000ff']
+            //pointBorderColor: ['#fff', '#0000ff']
         }];
         for (let i = 1; i < data.length; i++) {
             datasets.push({
@@ -732,7 +707,7 @@ class ChartHandler2 {
                 ],
                 borderWidth: 2,
                 pointBackgroundColor: ['#fff', '#0000ff'],
-                pointBorderColor: ['#fff', '#0000ff']
+                //pointBorderColor: ['#fff', '#0000ff']
             });
         }
         datasets.push({
@@ -746,16 +721,16 @@ class ChartHandler2 {
                 y: 1
             }, {
                 //@ts-ignore
-                x: data[data.length - 1] + xMax - xMin,
+                x: 2*xMax,
                 //@ts-ignore
                 y: 1
             }],
             borderColor: [
                 'rgba(0,0,255,1)'
             ],
-            borderWidth: 4,
-            pointBackgroundColor: ['#fff', '#0000ff'],
-            pointBorderColor: ['#fff', '#0000ff']
+            borderWidth: 2,
+            pointBackgroundColor: ['#fff', '#0000ff']
+            //pointBorderColor: ['#fff', '#0000ff']
         });
 
         // @ts-ignore
@@ -763,6 +738,7 @@ class ChartHandler2 {
             {
                 type: 'scatter',
                 data: {
+                    labels: names,
                     datasets: datasets
                 },
                 options: {
@@ -789,7 +765,7 @@ class ChartHandler2 {
                         }],
                         yAxes: [{
                             ticks: {
-                                max: 1,
+                                max: 1.001,
                                 min: 0
                             },
                             scaleLabel: {

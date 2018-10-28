@@ -112,13 +112,11 @@ var App2 = /** @class */ (function () {
             $('#centralEmpiricalMoment' + i)[0].innerText =
                 Utils2.round(this.propCalculator.getCentaralEmpiricalMoment(i), this.precition).toString();
         }
-        //this.chartHandler.updateFrequencyPolygon(this.data[0] - 2, this.data[this.data.length - 1] + 2,
-        //    this.propCalculator.getFrequencyPolygonData());
-        //this.chartHandler.updateFrequencyPolygonRelative(this.data[0] - 2, this.data[this.data.length - 1] + 2,
-        //    this.propCalculator.getFrequencyPolygonRelativeData());
-        this.chartHandler.updateComulativeCurve(this.data[0] - 2, this.data[this.data.length - 1] + 2, this.propCalculator.getComulativeCurveData());
-        this.chartHandler.updateComulativeCurveRelative(this.data[0] - 2, this.data[this.data.length - 1] + 2, this.propCalculator.getComulativeCurveRelativeData());
-        this.chartHandler.updateEmpiricalDistribution(this.data[0] - 2, this.data[this.data.length - 1] + 2, this.propCalculator.getEmpiricalDistributionData());
+        this.chartHandler.updateFrequencyHistogram(this.data[0], this.data[this.data.length - 1] + 2, this.propCalculator.getFrequencyHistogramData(), this.propCalculator.dataIntervals.map(function (val, idx, arr) { return val.toString(); }));
+        this.chartHandler.updateFrequencyHistogramRelative(this.data[0] - 2, this.data[this.data.length - 1] + 2, this.propCalculator.getFrequencyHistogramRelativeData(), this.propCalculator.dataIntervals.map(function (val, idx, arr) { return val.toString(); }));
+        this.chartHandler.updateComulativeCurve(0, this.propCalculator.dataIntervals.length, this.propCalculator.getComulativeCurveData(), this.propCalculator.dataIntervals.map(function (val, idx, arr) { return val.toString(); }));
+        this.chartHandler.updateComulativeCurveRelative(0, this.propCalculator.dataIntervals.length, this.propCalculator.getComulativeCurveRelativeData(), this.propCalculator.dataIntervals.map(function (val, idx, arr) { return val.toString(); }));
+        this.chartHandler.updateEmpiricalDistribution(this.data[0], this.data[this.data.length - 1], this.propCalculator.getEmpiricalDistributionData(), Utils2.roundArray(this.propCalculator.discreteValues, this.precition));
     };
     App2.prototype.createNewElementContent = function (value) {
         return "<td><input class='form-control' type='number' value='" + value + "'/></td>";
@@ -313,32 +311,26 @@ var PropCalculator2 = /** @class */ (function () {
         this.excess = this.getCentaralEmpiricalMoment(4) / Math.pow(this.avgSqrDeviation, 4) - 3;
         return this.excess;
     };
-    PropCalculator2.prototype.getFrequencyPolygonData = function () {
+    PropCalculator2.prototype.getFrequencyHistogramData = function () {
         var data = [];
-        for (var i = 0; i < this.amountOfVariables; i++)
-            data.push({
-                x: this.uniqueVariants[i],
-                y: Utils2.round(this.frequencyMap[this.uniqueVariants[i]], 3)
-            });
+        for (var i = 0; i < this.dataIntervals.length; i++)
+            data.push(Utils2.round(this.frequencyMap[this.dataIntervals[i].toString()] / this.intervalSize, 2));
         return data;
     };
-    PropCalculator2.prototype.getFrequencyPolygonRelativeData = function () {
+    PropCalculator2.prototype.getFrequencyHistogramRelativeData = function () {
         var data = [];
-        for (var i = 0; i < this.amountOfVariables; i++)
-            data.push({
-                x: this.uniqueVariants[i],
-                y: Utils2.round(this.relativeFrequencyMap[this.uniqueVariants[i]], 3)
-            });
+        for (var i = 0; i < this.dataIntervals.length; i++)
+            data.push(Utils2.round(this.relativeFrequencyMap[this.dataIntervals[i].toString()] / this.intervalSize, 2));
         return data;
     };
     PropCalculator2.prototype.getComulativeCurveData = function () {
         var data = [];
         var funcVal = 0;
-        for (var i = 0; i < this.amountOfVariables; i++) {
-            funcVal += this.frequencyMap[this.uniqueVariants[i]];
+        for (var i = 0; i < this.dataIntervals.length; i++) {
+            funcVal += this.frequencyMap[this.dataIntervals[i].toString()];
             data.push({
-                x: this.uniqueVariants[i],
-                y: Utils2.round(funcVal, 3)
+                x: i,
+                y: Utils2.round(funcVal, 2)
             });
         }
         return data;
@@ -347,10 +339,10 @@ var PropCalculator2 = /** @class */ (function () {
         var data = [];
         var funcVal = 0;
         for (var i = 0; i < this.amountOfVariables; i++) {
-            funcVal += this.relativeFrequencyMap[this.uniqueVariants[i]];
+            funcVal += this.relativeFrequencyMap[this.dataIntervals[i].toString()];
             data.push({
-                x: this.uniqueVariants[i],
-                y: Utils2.round(funcVal, 3)
+                x: i,
+                y: Utils2.round(funcVal, 2)
             });
         }
         return data;
@@ -358,12 +350,12 @@ var PropCalculator2 = /** @class */ (function () {
     PropCalculator2.prototype.getEmpiricalDistributionData = function () {
         var data = [];
         var funcVal = 0;
-        for (var i = 0; i < this.amountOfVariables; i++) {
+        for (var i = 0; i < this.dataIntervals.length; i++) {
             data.push({
-                x: this.uniqueVariants[i],
-                y: Utils2.round(funcVal, 3)
+                x: Utils2.round(this.discreteValues[i], 2),
+                y: Utils2.round(funcVal, 2)
             });
-            funcVal += this.frequencyMap[this.uniqueVariants[i]] / this.amount;
+            funcVal += this.frequencyValues[i] / this.amount;
         }
         return data;
     };
@@ -373,12 +365,12 @@ var ChartHandler2 = /** @class */ (function () {
     function ChartHandler2() {
     }
     ChartHandler2.prototype.deleteCharts = function () {
-        if (this.frequencyPolygonChart)
+        if (this.frequencyHistogramChart)
             // @ts-ignore
-            this.frequencyPolygonChart.destroy();
-        if (this.frequencyPolygonRelativeChart)
+            this.frequencyHistogramChart.destroy();
+        if (this.frequencyHistogramRelativeChart)
             // @ts-ignore
-            this.frequencyPolygonRelativeChart.destroy();
+            this.frequencyHistogramRelativeChart.destroy();
         if (this.comulativeCurveChart)
             // @ts-ignore
             this.comulativeCurveChart.destroy();
@@ -389,20 +381,20 @@ var ChartHandler2 = /** @class */ (function () {
             // @ts-ignore
             this.empiricalDistibutionChart.destroy();
     };
-    ChartHandler2.prototype.updateFrequencyPolygon = function (xMin, xMax, data) {
-        var chart = document.getElementById('frequencyPolygon');
+    ChartHandler2.prototype.updateFrequencyHistogram = function (xMin, xMax, data, names) {
+        var chart = document.getElementById('frequencyHistogram');
+        console.log(data);
         // @ts-ignore
-        this.frequencyPolygonChart = new Chart(chart.getContext('2d'), {
-            type: 'scatter',
+        this.frequencyHistogramChart = new Chart(chart.getContext('2d'), {
+            type: 'bar',
             data: {
+                labels: names,
                 datasets: [{
                         showLine: true,
                         fill: false,
                         tension: 0,
                         data: data,
-                        borderColor: [
-                            'rgba(0,0,255,1)'
-                        ],
+                        borderColor: 'rgba(0,0,255,1)',
                         borderWidth: 2,
                         pointBackgroundColor: '#0000ff',
                         pointBorderColor: '#0000ff'
@@ -414,72 +406,6 @@ var ChartHandler2 = /** @class */ (function () {
                 },
                 scales: {
                     xAxes: [{
-                            position: 'bottom',
-                            type: 'linear',
-                            gridLines: {
-                                display: false
-                            },
-                            ticks: {
-                                max: xMax,
-                                min: xMin
-                            },
-                            scaleLabel: {
-                                display: true,
-                                labelString: 'Xᵢ',
-                                fontSize: 16,
-                                fontStyle: 'bold'
-                            }
-                        }],
-                    yAxes: [{
-                            ticks: {
-                                min: 0,
-                                max: 2.0001
-                            },
-                            scaleLabel: {
-                                display: true,
-                                labelString: 'mᵢ',
-                                fontSize: 16,
-                                fontStyle: 'bold'
-                            }
-                        }]
-                },
-            }
-        });
-    };
-    ChartHandler2.prototype.updateFrequencyPolygonRelative = function (xMin, xMax, data) {
-        var chart = document.getElementById('frequencyPolygonRelative');
-        // @ts-ignore
-        this.frequencyPolygonRelativeChart = new Chart(chart.getContext('2d'), {
-            type: 'scatter',
-            data: {
-                datasets: [{
-                        showLine: true,
-                        fill: false,
-                        tension: 0,
-                        data: data,
-                        borderColor: [
-                            'rgba(0,0,255,1)'
-                        ],
-                        borderWidth: 2,
-                        pointBackgroundColor: '#0000ff',
-                        pointBorderColor: '#0000ff'
-                    }]
-            },
-            options: {
-                legend: {
-                    display: false
-                },
-                scales: {
-                    xAxes: [{
-                            position: 'bottom',
-                            type: 'linear',
-                            gridLines: {
-                                display: false
-                            },
-                            ticks: {
-                                max: xMax,
-                                min: xMin
-                            },
                             scaleLabel: {
                                 display: true,
                                 labelString: 'Xᵢ',
@@ -493,7 +419,7 @@ var ChartHandler2 = /** @class */ (function () {
                             },
                             scaleLabel: {
                                 display: true,
-                                labelString: 'p*ᵢ',
+                                labelString: 'mᵢ / r',
                                 fontSize: 16,
                                 fontStyle: 'bold'
                             }
@@ -502,12 +428,59 @@ var ChartHandler2 = /** @class */ (function () {
             }
         });
     };
-    ChartHandler2.prototype.updateComulativeCurve = function (xMin, xMax, data) {
+    ChartHandler2.prototype.updateFrequencyHistogramRelative = function (xMin, xMax, data, names) {
+        var chart = document.getElementById('frequencyHistogramRelative');
+        // @ts-ignore
+        this.frequencyHistogramRelativeChart = new Chart(chart.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: names,
+                datasets: [{
+                        showLine: true,
+                        fill: false,
+                        tension: 0,
+                        data: data,
+                        borderColor: 'rgba(0,0,255,1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#0000ff',
+                        pointBorderColor: '#0000ff'
+                    }]
+            },
+            options: {
+                legend: {
+                    display: false
+                },
+                scales: {
+                    xAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Xᵢ',
+                                fontSize: 16,
+                                fontStyle: 'bold'
+                            }
+                        }],
+                    yAxes: [{
+                            ticks: {
+                                min: 0
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'p*ᵢ / r',
+                                fontSize: 16,
+                                fontStyle: 'bold'
+                            }
+                        }]
+                },
+            }
+        });
+    };
+    ChartHandler2.prototype.updateComulativeCurve = function (xMin, xMax, data, names) {
         var chart = document.getElementById('comulativeCurve');
         // @ts-ignore
         this.comulativeCurveChart = new Chart(chart.getContext('2d'), {
-            type: 'scatter',
+            type: 'line',
             data: {
+                labels: names,
                 datasets: [{
                         showLine: true,
                         fill: false,
@@ -528,13 +501,8 @@ var ChartHandler2 = /** @class */ (function () {
                 scales: {
                     xAxes: [{
                             position: 'bottom',
-                            type: 'linear',
                             gridLines: {
-                                display: false
-                            },
-                            ticks: {
-                                max: xMax,
-                                min: xMin
+                                display: true
                             },
                             scaleLabel: {
                                 display: true,
@@ -558,12 +526,13 @@ var ChartHandler2 = /** @class */ (function () {
             }
         });
     };
-    ChartHandler2.prototype.updateComulativeCurveRelative = function (xMin, xMax, data) {
+    ChartHandler2.prototype.updateComulativeCurveRelative = function (xMin, xMax, data, names) {
         var chart = document.getElementById('comulativeCurveRelative');
         // @ts-ignore
         this.comulativeCurveRelativeChart = new Chart(chart.getContext('2d'), {
-            type: 'scatter',
+            type: 'line',
             data: {
+                labels: names,
                 datasets: [{
                         showLine: true,
                         fill: false,
@@ -584,13 +553,8 @@ var ChartHandler2 = /** @class */ (function () {
                 scales: {
                     xAxes: [{
                             position: 'bottom',
-                            type: 'linear',
                             gridLines: {
-                                display: false
-                            },
-                            ticks: {
-                                max: xMax,
-                                min: xMin
+                                display: true
                             },
                             scaleLabel: {
                                 display: true,
@@ -615,7 +579,7 @@ var ChartHandler2 = /** @class */ (function () {
             }
         });
     };
-    ChartHandler2.prototype.updateEmpiricalDistribution = function (xMin, xMax, data) {
+    ChartHandler2.prototype.updateEmpiricalDistribution = function (xMin, xMax, data, names) {
         var chart = document.getElementById('empiricalDistibution');
         var datasets = [{
                 showLine: true,
@@ -623,7 +587,7 @@ var ChartHandler2 = /** @class */ (function () {
                 tension: 0,
                 data: [{
                         //@ts-ignore
-                        x: data[0] - xMax + xMin,
+                        x: 2 * xMin,
                         //@ts-ignore
                         y: 0
                     }, {
@@ -635,9 +599,8 @@ var ChartHandler2 = /** @class */ (function () {
                 borderColor: [
                     'rgba(0,0,255,1)'
                 ],
-                borderWidth: 4,
+                borderWidth: 2,
                 pointBackgroundColor: ['#fff', '#0000ff'],
-                pointBorderColor: ['#fff', '#0000ff']
             }];
         for (var i = 1; i < data.length; i++) {
             datasets.push({
@@ -660,7 +623,6 @@ var ChartHandler2 = /** @class */ (function () {
                 ],
                 borderWidth: 2,
                 pointBackgroundColor: ['#fff', '#0000ff'],
-                pointBorderColor: ['#fff', '#0000ff']
             });
         }
         datasets.push({
@@ -674,21 +636,22 @@ var ChartHandler2 = /** @class */ (function () {
                     y: 1
                 }, {
                     //@ts-ignore
-                    x: data[data.length - 1] + xMax - xMin,
+                    x: 2 * xMax,
                     //@ts-ignore
                     y: 1
                 }],
             borderColor: [
                 'rgba(0,0,255,1)'
             ],
-            borderWidth: 4,
-            pointBackgroundColor: ['#fff', '#0000ff'],
-            pointBorderColor: ['#fff', '#0000ff']
+            borderWidth: 2,
+            pointBackgroundColor: ['#fff', '#0000ff']
+            //pointBorderColor: ['#fff', '#0000ff']
         });
         // @ts-ignore
         this.empiricalDistibutionChart = new Chart(chart.getContext('2d'), {
             type: 'scatter',
             data: {
+                labels: names,
                 datasets: datasets
             },
             options: {
@@ -715,7 +678,7 @@ var ChartHandler2 = /** @class */ (function () {
                         }],
                     yAxes: [{
                             ticks: {
-                                max: 1,
+                                max: 1.001,
                                 min: 0
                             },
                             scaleLabel: {
