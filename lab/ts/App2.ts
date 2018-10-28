@@ -207,10 +207,11 @@ class PropCalculator2 {
         let intervalStart = this.dataMin;
         for (let i = 0; i < this.intervalCount - 1; i++){
             this.dataIntervals[i] = new Interval(intervalStart, intervalStart+this.intervalSize);
-            this.discreteValues.push((this.dataIntervals[i].end - this.dataIntervals[i].start) / 2);
+            this.discreteValues.push((this.dataIntervals[i].end - this.dataIntervals[i].start) / 2 + this.dataIntervals[i].start);
             intervalStart += this.intervalSize;
         }
         this.dataIntervals[ Math.floor(this.intervalCount)] = new Interval(intervalStart, this.dataMax, true);
+        this.discreteValues.push((this.dataIntervals[ Math.floor(this.intervalCount)].end - this.dataIntervals[ Math.floor(this.intervalCount)].start) / 2 + this.dataIntervals[ Math.floor(this.intervalCount)].start);
 
         let currentIntervalIdx = 0;
         for (let i = 0; i < this.data.length; i++) {
@@ -241,23 +242,63 @@ class PropCalculator2 {
 
     public getAvgEmpiricalValue(): number {
         this.avgEmpirical = 0;
-        for (let i = 0; i < this.data.length; i++)
-            this.avgEmpirical += this.data[i];
+        for (let i = 0; i < this.amountOfVariables; i++)
+            this.avgEmpirical += this.relativeFrequencyValues[i] * this.discreteValues[i];
 
-        this.avgEmpirical /= this.amount;
         return this.avgEmpirical;
     }
 
     public getModa(): number[] {
         this.maxEntries = -1;
-        for (var key in this.frequencyMap)
-            if (this.frequencyMap.hasOwnProperty(key) && this.frequencyMap[key] > this.maxEntries)
-                this.maxEntries = this.frequencyMap[key];
+        let currentValue = null;
+        let currentEntries = 0;
+        for(let i = 0; i < this.data.length; i++){
+            if(this.data[i] != currentValue){
+                currentValue = this.data[i];
+                currentEntries = 1;
+            }
+            else{
+                currentEntries++;
+            }
+            if (currentEntries > this.maxEntries)
+                this.maxEntries = currentEntries;
+        }
 
         this.moda = [];
-        for (var key in this.frequencyMap)
-            if (this.frequencyMap.hasOwnProperty(key) && this.frequencyMap[key] == this.maxEntries)
-                this.moda.push(parseFloat(key));
+        currentValue = null;
+        currentEntries = 0;
+        for(let i = 0; i < this.data.length; i++){
+            if(this.data[i] != currentValue){
+                currentValue = this.data[i];
+                currentEntries = 1;
+            }
+            else{
+                currentEntries++;
+            }
+            if (currentEntries == this.maxEntries)
+                this.moda.push(currentValue);
+        }
+
+        let prevModaIntervals: Interval[] = [];
+        let modaIntervals: Interval[] = [];
+        let postModaIntervals: Interval[] = [];
+        for(let j = 0; j < this.moda.length; j++)
+            for(let i = 0; i < this.dataIntervals.length; i++)
+                if(this.moda[j] >= this.dataIntervals[i].start && this.moda[j] < this.dataIntervals[i].end){
+                    prevModaIntervals.push(this.dataIntervals[i-1]);
+                    modaIntervals.push(this.dataIntervals[i]);
+                    postModaIntervals.push(this.dataIntervals[i+1]);
+                    continue;
+                }
+        let intevalModa: number[] = [];
+        for(let i = 0; i < modaIntervals.length; i++){
+            intevalModa.push(
+                modaIntervals[i].start + this.intervalSize *
+                (this.frequencyMap[modaIntervals[i].toString()] - this.frequencyMap[prevModaIntervals[i].toString()]) /
+                (this.frequencyMap[modaIntervals[i].toString()] - this.frequencyMap[prevModaIntervals[i].toString()] - this.frequencyMap[postModaIntervals[i].toString()])
+            )
+        }
+        this.moda = intevalModa;
         return this.moda;
     }
 
@@ -266,7 +307,23 @@ class PropCalculator2 {
         if (Math.floor(midPoint) == midPoint)
             this.mediana = this.data[midPoint];
         else
-            this.mediana = (this.data[Math.floor(midPoint)] + this.data[Math.round(midPoint)]) / 2
+            this.mediana = (this.data[Math.floor(midPoint)] + this.data[Math.round(midPoint)]) / 2;
+
+
+        let medianIntevalIdx = -1;
+        let accumulatedFreq = 0;
+        for(let i = 0; i < this.dataIntervals.length; i++)
+            if(this.mediana >= this.dataIntervals[i].start && this.mediana < this.dataIntervals[i].end){
+                medianIntevalIdx = i;
+                break;
+            }
+            else {
+                accumulatedFreq += this.frequencyMap[this.dataIntervals[i].toString()];
+            }
+        
+        this.mediana = this.dataIntervals[medianIntevalIdx].start +
+            (this.intervalSize / this.frequencyMap[this.dataIntervals[medianIntevalIdx].toString()]) *
+            (this.amount /2 - accumulatedFreq);
         return this.mediana;
     }
     public getWidth(): number {
@@ -275,14 +332,13 @@ class PropCalculator2 {
     }
     public getDispersion(): number {
         this.dispersion = 0;
-        for (var key in this.frequencyMap)
-            if (this.frequencyMap.hasOwnProperty(key))
-                this.dispersion += Utils2.sqr(parseFloat(key))
-                    * this.frequencyMap[key];
-        this.dispersion /= this.data.length;
-        this.dispersion -= Utils2.sqr(this.avgEmpirical);
+        //for(let i = 0; i < this.dataIntervals.length; i++)
+        //    this.dispersion += this.relativeFrequencyMap[this.dataIntervals[i].toString()] *
+        //        this.discreteValues[i]
+        //this.dispersion /= this.data.length;
+        //this.dispersion -= Utils2.sqr(this.avgEmpirical);
         //using momments returns the same value
-        //this.dispersion = this.getStartEmpiricalMoment(2) - Utils2.sqr(this.getStartEmpiricalMoment(1));
+        this.dispersion = this.getStartEmpiricalMoment(2) - Utils2.sqr(this.getStartEmpiricalMoment(1));
         return this.dispersion;
     }
     public getDeviation(): number {
@@ -295,18 +351,16 @@ class PropCalculator2 {
     }
     public getStartEmpiricalMoment(exponent: number): number {
         let moment = 0;
-        for (var key in this.frequencyMap)
-            if (this.frequencyMap.hasOwnProperty(key))
-                moment += Math.pow(parseFloat(key), exponent)
-                    * this.frequencyMap[key];
+        for(let i = 0; i < this.dataIntervals.length; i++)
+            moment += Math.pow(this.discreteValues[i], exponent)
+                * this.frequencyValues[i];
         return moment / this.data.length;
     }
     public getCentaralEmpiricalMoment(exponent: number): number {
         let moment = 0;
-        for (var key in this.frequencyMap)
-            if (this.frequencyMap.hasOwnProperty(key))
-                moment += Math.pow(parseFloat(key) - this.avgEmpirical, exponent)
-                    * this.frequencyMap[key];
+        for(let i = 0; i < this.dataIntervals.length; i++)
+            moment += Math.pow(this.discreteValues[i] - this.avgEmpirical, exponent)
+                * this.frequencyValues[i];
         return moment / this.data.length;
     }
     public getAsymetry(): number {
