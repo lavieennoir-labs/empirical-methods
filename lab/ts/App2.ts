@@ -198,7 +198,7 @@ class PropCalculator2 {
     public getIntervalSize(): Object {
         this.dataMin = Math.min.apply(null, this.data);
         this.dataMax = Math.max.apply(null, this.data);
-        this.intervalCount = 1 + 3.322 * Math.log(this.data.length);
+        this.intervalCount = 1 + 3.322 * Utils2.log10(this.data.length);
         this.intervalSize = 
             (this.dataMax - this.dataMin) / this.intervalCount;
         return this.intervalSize;
@@ -486,10 +486,11 @@ class ChartHandler2 {
                         xAxes: [{                            
                             scaleLabel: {
                                 display: true,
-                                labelString: 'Xᵢ',
+                                labelString: '[Xᵢ, Xᵢ+1)',
                                 fontSize: 16,
                                 fontStyle: 'bold'
-                            }
+                            },
+                            barThickness: 99,
                         }],
                         yAxes: [{
                             ticks: {
@@ -533,10 +534,13 @@ class ChartHandler2 {
                         xAxes: [{
                             scaleLabel: {
                                 display: true,
-                                labelString: 'Xᵢ',
+                                labelString: '[Xᵢ, Xᵢ+1)',
                                 fontSize: 16,
                                 fontStyle: 'bold'
-                            }
+                            },
+                            barThickness: 99,
+                            //categorySpacing:0
+
                         }],
                         yAxes: [{
                             ticks: {
@@ -587,7 +591,7 @@ class ChartHandler2 {
                             },
                             scaleLabel: {
                                 display: true,
-                                labelString: 'Xᵢ',
+                                labelString: '[Xᵢ, Xᵢ+1)',
                                 fontSize: 16,
                                 fontStyle: 'bold'
                             }
@@ -640,7 +644,7 @@ class ChartHandler2 {
                             },
                             scaleLabel: {
                                 display: true,
-                                labelString: 'Xᵢ',
+                                labelString: '[Xᵢ, Xᵢ+1)',
                                 fontSize: 16,
                                 fontStyle: 'bold'
                             }
@@ -758,7 +762,7 @@ class ChartHandler2 {
                             },
                             scaleLabel: {
                                 display: true,
-                                labelString: 'Xᵢ',
+                                labelString: 'Zᵢ',
                                 fontSize: 16,
                                 fontStyle: 'bold'
                             }
