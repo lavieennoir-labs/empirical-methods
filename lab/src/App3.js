@@ -28,16 +28,20 @@ var Utils3 = /** @class */ (function () {
 var Interval = /** @class */ (function () {
     function Interval(_start, _end, _endInclusive) {
         if (_endInclusive === void 0) { _endInclusive = false; }
-        var _this = this;
         this.startInclusice = true;
-        this.toString = function () {
-            return (_this.startInclusice ? "[" : "(") + Utils3.round(_this.start, 3) + ", " +
-                Utils3.round(_this.end, 3) + (_this.endInclusive ? "]" : ")");
-        };
         this.start = _start;
         this.end = _end;
         this.endInclusive = _endInclusive;
     }
+    Interval.prototype.toString = function () {
+        return (this.startInclusice ? "[" : "(") + Utils3.round(this.start, 3) + ", " +
+            Utils3.round(this.end, 3) + (this.endInclusive ? "]" : ")");
+    };
+    Interval.prototype.toInequalityString = function (varName) {
+        return Utils3.round(this.start, 3) +
+            " ≤ " + varName + " ≤ " +
+            Utils3.round(this.end, 3);
+    };
     return Interval;
 }());
 var App3 = /** @class */ (function () {
@@ -82,26 +86,26 @@ var App3 = /** @class */ (function () {
     };
     App3.prototype.updateResult = function () {
         this.propCalculator = new PropCalculator3(this.data, 0.05);
-        $('#intervalForKnownDispersion1')[0].innerText =
-            this.propCalculator.intervalForKnownDispersion.toString();
-        $('#intervalForUnknownDispersion1')[0].innerText =
-            this.propCalculator.intervalForUnknownDispersion.toString();
-        $('#intervalForSqrDeviation1')[0].innerText =
-            this.propCalculator.intervalForSqrDeviation.toString();
+        $('#intervalForKnownDispersion1')[0].innerHTML =
+            this.propCalculator.intervalForKnownDispersion.toInequalityString("<i>m</i>");
+        $('#intervalForUnknownDispersion1')[0].innerHTML =
+            this.propCalculator.intervalForUnknownDispersion.toInequalityString("<i>m</i>");
+        $('#intervalForSqrDeviation1')[0].innerHTML =
+            this.propCalculator.intervalForSqrDeviation.toInequalityString("<i>σ</i>");
         this.propCalculator = new PropCalculator3(this.data, 0.01);
-        $('#intervalForKnownDispersion2')[0].innerText =
-            this.propCalculator.intervalForKnownDispersion.toString();
-        $('#intervalForUnknownDispersion2')[0].innerText =
-            this.propCalculator.intervalForUnknownDispersion.toString();
-        $('#intervalForSqrDeviation2')[0].innerText =
-            this.propCalculator.intervalForSqrDeviation.toString();
+        $('#intervalForKnownDispersion2')[0].innerHTML =
+            this.propCalculator.intervalForKnownDispersion.toInequalityString("<i>m</i>");
+        $('#intervalForUnknownDispersion2')[0].innerHTML =
+            this.propCalculator.intervalForUnknownDispersion.toInequalityString("<i>m</i>");
+        $('#intervalForSqrDeviation2')[0].innerHTML =
+            this.propCalculator.intervalForSqrDeviation.toInequalityString("<i>σ</i>");
         this.propCalculator = new PropCalculator3(this.data, 0.001);
-        $('#intervalForKnownDispersion3')[0].innerText =
-            this.propCalculator.intervalForKnownDispersion.toString();
-        $('#intervalForUnknownDispersion3')[0].innerText =
-            this.propCalculator.intervalForUnknownDispersion.toString();
-        $('#intervalForSqrDeviation3')[0].innerText =
-            this.propCalculator.intervalForSqrDeviation.toString();
+        $('#intervalForKnownDispersion3')[0].innerHTML =
+            this.propCalculator.intervalForKnownDispersion.toInequalityString("<i>m</i>");
+        $('#intervalForUnknownDispersion3')[0].innerHTML =
+            this.propCalculator.intervalForUnknownDispersion.toInequalityString("<i>m</i>");
+        $('#intervalForSqrDeviation3')[0].innerHTML =
+            this.propCalculator.intervalForSqrDeviation.toInequalityString("<i>σ</i>");
     };
     App3.prototype.createNewElementContent = function (value) {
         return "<td><input class='form-control' type='number' value='" + value + "'/></td>";

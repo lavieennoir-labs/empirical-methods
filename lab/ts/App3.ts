@@ -34,10 +34,16 @@ class Interval {
         this.endInclusive = _endInclusive;
     }
     
-    public toString = () : string => {
+    public toString() : string {
         return (this.startInclusice ? "[" : "(") + Utils3.round(this.start,3)+ ", " +
          Utils3.round(this.end,3) + (this.endInclusive ? "]" : ")");
     }
+     public toInequalityString(varName: string) : string {
+        return Utils3.round(this.start,3) +
+         " ≤ " + varName + " ≤ " +
+         Utils3.round(this.end,3);
+
+     }
 }
 
 class App3 {
@@ -93,30 +99,30 @@ class App3 {
     public updateResult(): void {
         this.propCalculator = new PropCalculator3(this.data,0.05);
 
-        $('#intervalForKnownDispersion1')[0].innerText =
-            this.propCalculator.intervalForKnownDispersion.toString();
-        $('#intervalForUnknownDispersion1')[0].innerText =
-            this.propCalculator.intervalForUnknownDispersion.toString();
-        $('#intervalForSqrDeviation1')[0].innerText =
-            this.propCalculator.intervalForSqrDeviation.toString();
+        $('#intervalForKnownDispersion1')[0].innerHTML =
+            this.propCalculator.intervalForKnownDispersion.toInequalityString("<i>m</i>");
+        $('#intervalForUnknownDispersion1')[0].innerHTML =
+            this.propCalculator.intervalForUnknownDispersion.toInequalityString("<i>m</i>");
+        $('#intervalForSqrDeviation1')[0].innerHTML =
+            this.propCalculator.intervalForSqrDeviation.toInequalityString("<i>σ</i>");
             
         this.propCalculator = new PropCalculator3(this.data,0.01);
 
-        $('#intervalForKnownDispersion2')[0].innerText =
-            this.propCalculator.intervalForKnownDispersion.toString();
-        $('#intervalForUnknownDispersion2')[0].innerText =
-            this.propCalculator.intervalForUnknownDispersion.toString();
-        $('#intervalForSqrDeviation2')[0].innerText =
-            this.propCalculator.intervalForSqrDeviation.toString();
+        $('#intervalForKnownDispersion2')[0].innerHTML =
+            this.propCalculator.intervalForKnownDispersion.toInequalityString("<i>m</i>");
+        $('#intervalForUnknownDispersion2')[0].innerHTML =
+            this.propCalculator.intervalForUnknownDispersion.toInequalityString("<i>m</i>");
+        $('#intervalForSqrDeviation2')[0].innerHTML =
+            this.propCalculator.intervalForSqrDeviation.toInequalityString("<i>σ</i>");
             
         this.propCalculator = new PropCalculator3(this.data,0.001);
 
-        $('#intervalForKnownDispersion3')[0].innerText =
-            this.propCalculator.intervalForKnownDispersion.toString();
-        $('#intervalForUnknownDispersion3')[0].innerText =
-            this.propCalculator.intervalForUnknownDispersion.toString();
-        $('#intervalForSqrDeviation3')[0].innerText =
-            this.propCalculator.intervalForSqrDeviation.toString();
+        $('#intervalForKnownDispersion3')[0].innerHTML =
+            this.propCalculator.intervalForKnownDispersion.toInequalityString("<i>m</i>");
+        $('#intervalForUnknownDispersion3')[0].innerHTML =
+            this.propCalculator.intervalForUnknownDispersion.toInequalityString("<i>m</i>");
+        $('#intervalForSqrDeviation3')[0].innerHTML =
+            this.propCalculator.intervalForSqrDeviation.toInequalityString("<i>σ</i>");
     }
 
     protected createNewElementContent(value: number): string {
